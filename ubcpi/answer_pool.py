@@ -323,6 +323,94 @@ def get_other_answers_random(pool, seeded_answers, get_student_item_dict, num_re
     return {"answers": ret}
 
 
+def refresh_answers(answers_shown, option, pool, seeded_answers, get_student_item_dict, seeded_first=False):
+    """
+    Refresh the answers shown for given option
+
+    Args:
+        answers_shown (dict): answers being shown that need to be refreshed. Format:
+            {'answers': [
+                {'option': 0, 'rationale': 'rationale A'},
+                {'option': 1, 'rationale': 'rationale B'},
+            ]}
+        option (int): the option to refresh
+        pool (dict): answer pool, format:
+            {
+                option1_index: {
+                    student_id: { can store algorithm specific info here }
+                },
+                option2_index: {
+                    student_id: { ... }
+                }
+            }
+        seeded_answers (list): seeded answers from instructor
+            [
+                {'answer': 0, 'rationale': 'rationale A'},
+                {'answer': 1, 'rationale': 'rationale B'},
+            ]
+        get_student_item_dict (callable): get student item dict function to return student item dict
+        seeded_first (boolean): refresh with answers from seeded_answers first, when exhausted, pick from pool
+
+    Returns:
+        dict: refreshed answers lists
+        {
+            'answers':
+                [
+                    {'option': 0, 'rationale': 'rationale A'},
+                    {'option': 1, 'rationale': 'rationale B'},
+                ]
+        }
+    """
+    ret = answers_shown.copy()
+    # clean up answers so that all keys are int
+    pool = {int(k): v for k, v in pool.items()}
+    seeded_pool = convert_seeded_answers(seeded_answers)
+    student_id = get_student_item_dict()['student_id']
+    student_pool = pool.copy()
+    for key in student_pool:
+        student_pool[key].pop(student_id, None)
+
+    # if seed answers have higher priority, fill the available seeds.
+    # otherwise merge them into available students
+    available_students = student_pool.get(option, {})
+    available_seeds = {}
+    if seeded_first and seeded_pool.get(option, {}):
+        available_seeds = seeded_pool.get(option, {})
+    else:
+        for item in seeded_pool.get(option, {}):
+            available_students[item] = seeded_pool.get(option, {}).get(item, None)
+
+    for answer in ret.get('answers', []):
+        if answer.get('option', None) == option:
+            rationale = None
+
+            while available_seeds:
+                key = random.choice(available_seeds.keys())
+                rationale = available_seeds.pop(key, None)
+                if rationale is not None:
+                    answer['rationale'] = rationale
+                    break;
+
+            while available_students and rationale is None:
+                key = random.choice(available_students.keys())
+                # remove the chosen answer from pool
+                _ = available_students.pop(key, None)
+
+                student_item = get_student_item_dict(key)
+                submission = sas_api.get_answers_for_student(student_item)
+                # Make sure the answer is still the one we want.
+                # It may have changed (e.g. instructor deleted the student state
+                # and the student re-submitted a diff answer)
+                if submission.has_revision(0) and submission.get_vote(0) == option:
+                    rationale = submission.get_rationale(0)
+
+                if rationale:
+                    answer['rationale'] = rationale
+                    break
+
+    return ret
+
+
 def convert_seeded_answers(answers):
     """
     Convert seeded answers into the format that can be merged into student answers.

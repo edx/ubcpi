@@ -631,6 +631,13 @@ text.ubcpibar.label {
     display: block;
 }
 
+.ubcpi-refresh-option-button * {
+    font-size: 0.9em;
+    color: #0075b4;
+    transition: none;
+    cursor: pointer;
+}
+
 #pi-form .list-input.settings-list .setting-label {
     vertical-align: top;
 }

@@ -53,7 +53,7 @@
 
                     <div id="hiding-options-div" class="ubcpi-possible-options">
                         <div class="ubcpi-option" data-ng-repeat="(optionKey, option) in options track by $index">
-                            <label class="ubcpi-label ubcpi-answer" data-ng-class="{'ubcpi-no-pointer': rc.status() == rc.ALL_STATUS.ANSWERED && !rc.revising}" for="original-option-input-{{ $index }}">
+                            <label class="ubcpi-label ubcpi-answer" data-ng-class="{'ubcpi-no-pointer': rc.status() == rc.ALL_STATUS.ANSWERED && !rc.revising}">
                                 <input class="ubcpi-field" type="radio" id="original-option-input-{{ $index }}" data-ng-if="rc.status() == rc.ALL_STATUS.NEW || rc.revising" name="q" data-ng-model="rc.answer" value="{{optionKey}}" required integer>
 
                                 <img data-ng-src="{{option.image_url}}" id="original-option-image-{{ $index }}" alt="{{option.image_alt}}" data-ng-if="option.image_position == 'above' && option.image_url" />
@@ -68,6 +68,9 @@
                                             <span class="sr" translate>Student Rationale</span><i aria-hidden="true" class="icon fa fa-user fa-lg"></i>
                                             <span class="other-rationale">"{{otherAnswer.rationale}}"</span>
                                         </div>
+                                    </div>
+                                    <div data-ng-if="rc.status() == rc.ALL_STATUS.ANSWERED">
+                                        <span class="ubcpi-refresh-option-button" ubcpi-refresh-rationale ubcpi-option="{{optionKey}}" ubcpi-refresh-model="rc.other_answers.answers" translate></span>
                                     </div>
                                 </div>
                                 <div class="no-sample-answer" ng-if="rc.status() == rc.ALL_STATUS.ANSWERED && !rc.hasSampleExplanationForOption(optionKey)">
@@ -112,7 +115,7 @@
                                             <p id="decision-prompt" style="text-align: right;" data-ng-if="!rc.revising" translate>What would you like to do?</p>
                                             <input id="update-button" style="margin-right: 5px; display: inline-block;" type='button' class='ubcpi_submit' data-ng-if="!rc.revising" value="{{ 'Revise Answer' | translate }}" name='ubcpi_update_step' data-ng-click="rc.revising=true;"/>
                                             <input id="cancel-button" style="margin-right: 5px; display: inline-block;" type='button' class='ubcpi_submit' data-ng-if="rc.revising" value="{{ 'Cancel' | translate }}" name='ubcpi_update_step' data-ng-click="rc.answer=rc.answer_original; rc.rationale=rc.rationale_original; rc.revising=false;"/>
-                                            <input id="submit-button" style="display: inline-block;" onclick="this.blur(); " style="display: inline; margin-left: 5px;" data-ng-disabled="answerForm.$invalid" type='button' class='ubcpi_submit' value="{{ 'Submit Answer' | translate }}" name='ubcpi_next_step' data-ng-click="rc.clickSubmit($event);" aria-describedby="button-disabled-reason ubcpi-next-inline-hints"/>
+                                            <input id="submit-button" style="display: inline-block;" onclick="this.blur(); " style="display: inline; margin-left: 5px;" data-ng-disabled="answerForm.$invalid" type='button' class='ubcpi_submit' value="{{ 'Submit Answer' | translate }}" name='ubcpi_next_step' data-ng-click="rc.clickSubmit($event);" aria-describedby="button-disabled-reason ubcpi-next-inline-hints" scroll-to-top-of-block='click' onclick=""/>
                                         </div>
                                     </div>
                                 </div>
